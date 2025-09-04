@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLM Tool Orchestrator - Technical Deep Dive</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .presentation-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .slide {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            background: white;
+            margin: 20px;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            animation: slideIn 1s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            font-size: 2.8em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+            background: linear-gradient(45deg, #2c3e50, #3498db);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h2 {
+            font-size: 2.2em;
+            color: #34495e;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        h3 {
+            font-size: 1.6em;
+            color: #3498db;
+            margin-bottom: 15px;
+        }
+
+        h4 {
+            font-size: 1.3em;
+            color: #e74c3c;
+            margin-bottom: 10px;
+        }
+
+        p, li {
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        .hero-section {
+            text-align: center;
+            padding: 40px 0;
+        }
+
+        .subtitle {
+            font-size: 1.3em;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+        }
+
+        .code-block {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 15px 0;
+            overflow-x: auto;
+            font-size: 0.9em;
+            border-left: 4px solid #3498db;
+        }
+
+        .code-inline {
+            background: #ecf0f1;
+            color: #2c3e50;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+
+        .flow-diagram {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 25px 0;
+            border: 2px solid #bdc3c7;
+        }
+
+        .flow-step {
+            background: linear-gradient(90deg, #e8f4f8, #d5e8f4);
+            margin: 12px 0;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+            position: relative;
+        }
+
+        .flow-step::after {
+            content: "↓";
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.5em;
+            color: #3498db;
+            font-weight: bold;
+        }
+
+        .flow-step:last-child::after {
+            display: none;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            width: 100%;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            width: 100%;
+        }
+
+        .card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 5px solid #3498db;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .method-signature {
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #27ae60;
+            font-family: monospace;
+            margin: 10px 0;
+            font-size: 0.9em;
+        }
+
+        .limitation-item {
+            background: #fdf2e9;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #e67e22;
+            margin: 10px 0;
+        }
+
+        .enhancement-item {
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #27ae60;
+            margin: 10px 0;
+        }
+
+        .aws-service {
+            background: linear-gradient(45deg, #FF9900, #FF6600);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            display: inline-block;
+            margin: 5px;
+            font-size: 0.9em;
+        }
+
+        .architecture-layer {
+            background: #f0f8ff;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            border-left: 4px solid #4169e1;
+        }
+
+        .highlight-box {
+            background: linear-gradient(120deg, #a8e6cf, #88d8a3);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 2px solid #5cb85c;
+        }
+
+        .navigation {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background: #2980b9;
+            transform: scale(1.05);
+        }
+
+        .emoji {
+            font-size: 1.5em;
+            margin-right: 10px;
+        }
+
+        .table-style {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .table-style th, .table-style td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .table-style th {
+            background: #3498db;
+            color: white;
+        }
+
+        .table-style tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <div class="presentation-container">
+        
+        <!-- Slide 1: Title -->
+        <div class="slide" id="slide1">
+            <div class="hero-section">
+                <h1>🔧 LLM Tool Orchestrator</h1>
+                <p class="subtitle">Technical Deep Dive & Implementation Details</p>
+                <div class="flow-diagram">
+                    <strong>Architecture → Intent Analysis → Method Flows → Limitations → Enhancements → AWS Productization</strong>
+                </div>
+                <p style="margin-top: 30px; font-size: 1.1em; color: #7f8c8d;">
+                    Understanding the technical implementation, orchestration patterns, 
+                    and scaling strategies for production deployment
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 2: System Flow & Architecture -->
+        <div class="slide" id="slide2">
+            <h2>🏗️ Complete System Flow</h2>
+            
+            <div class="flow-diagram">
+                <h3>End-to-End Request Processing</h3>
+                <div class="flow-step">
+                    <strong>1. Input Processing (main.py)</strong><br>
+                    <span class="code-inline">cli() → process_command() → MCPOrchestrator.analyze_and_route()</span><br>
+                    Handles CLI arguments, initializes orchestrator, manages application lifecycle
+                </div>
+                <div class="flow-step">
+                    <strong>2. Intent Analysis (mcp_server.py)</strong><br>
+                    <span class="code-inline">_analyze_intent() → AzureChatOpenAI.invoke() → JSON parsing</span><br>
+                    LLM analyzes user query, returns action + confidence + reasoning
+                </div>
+                <div class="flow-step">
+                    <strong>3. Parameter Extraction</strong><br>
+                    <span class="code-inline">_handle_*_intent() → LLM parameter extraction → tool_kwargs</span><br>
+                    Intent-specific handlers extract parameters using LLM reasoning
+                </div>
+                <div class="flow-step">
+                    <strong>4. Tool Execution</strong><br>
+                    <span class="code-inline">tool.process_request() → API calls → data processing</span><br>
+                    Execute appropriate tool with extracted parameters
+                </div>
+                <div class="flow-step">
+                    <strong>5. Response Formatting</strong><br>
+                    <span class="code-inline">LLM format response → natural language output</span><br>
+                    Final LLM call formats technical results for user consumption
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 3: Critical Methods Deep Dive -->
+        <div class="slide" id="slide3">
+            <h2>🔍 Key Methods & Functions</h2>
+            
+            <div class="grid-2">
+                <div class="card">
+                    <h3>Intent Analysis Engine</h3>
+                    <div class="method-signature">
+async def _analyze_intent(self, user_input: str) -> Dict[str, Any]
+                    </div>
+                    <p><strong>Purpose:</strong> Core intelligence for routing decisions</p>
+                    <p><strong>Process:</strong></p>
+                    <ul>
+                        <li>Constructs system message with available actions</li>
+                        <li>Uses AzureChatOpenAI with temperature=0.1 (deterministic)</li>
+                        <li>Parses JSON response: action, confidence, reasoning</li>
+                        <li>Returns structured intent analysis</li>
+                    </ul>
+                    <div class="code-block">
+# Example classification
+Input: "Find device Paradise and check SAL events"
+Output: {
+    "action": "sal_troubleshoot",
+    "confidence": 0.9,
+    "reasoning": "SAL event streaming verification"
+}
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Multi-Tool Orchestration</h3>
+                    <div class="method-signature">
+async def _handle_sal_troubleshoot_intent(self, user_input, reasoning)
+                    </div>
+                    <p><strong>Purpose:</strong> Complex workflow orchestration</p>
+                    <p><strong>Steps:</strong></p>
+                    <ol>
+                        <li>Parameter extraction via LLM</li>
+                        <li>SCC tool execution (device discovery)</li>
+                        <li>Stream ID resolution (env/prompt/default)</li>
+                        <li>DynamoDB query (event tracking)</li>
+                        <li>Timestamp analysis & recommendations</li>
+                        <li>Response formatting via LLM</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 20px;">
+                <h3>Token Management & Authentication</h3>
+                <div class="method-signature">
+def get_api_key() -> str  # settings.py
+                </div>
+                <p><strong>Cisco OAuth2 Flow Implementation:</strong></p>
+                <div class="code-block">
+1. POST to token endpoint with client credentials
+2. Extract access_token from JSON response  
+3. Handle SSL verification with certifi
+4. Return token for AzureChatOpenAI initialization
+5. Fresh token per request (no caching for security)
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4: Intent Analysis Deep Dive -->
+        <div class="slide" id="slide4">
+            <h2>🧠 Intent Analysis Mechanism</h2>
+            
+            <div class="flow-diagram">
+                <h3>How User Intent is Derived</h3>
+                <div class="flow-step">
+                    <strong>System Message Construction</strong><br>
+                    Defines available actions with examples and descriptions
+                </div>
+                <div class="flow-step">
+                    <strong>LLM Classification (AzureChatOpenAI)</strong><br>
+                    Temperature: 0.1, Max Tokens: 200, Model: gpt-4o-mini
+                </div>
+                <div class="flow-step">
+                    <strong>JSON Response Parsing</strong><br>
+                    Extracts action, confidence score, and reasoning
+                </div>
+                <div class="flow-step">
+                    <strong>Action Routing</strong><br>
+                    Routes to appropriate handler based on classified action
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <h3>Intent Categories</h3>
+                    <table class="table-style">
+                        <tr>
+                            <th>Action</th>
+                            <th>Trigger Keywords</th>
+                            <th>Handler</th>
+                        </tr>
+                        <tr>
+                            <td>file_read</td>
+                            <td>read, csv, file, analyze</td>
+                            <td>_handle_file_intent</td>
+                        </tr>
+                        <tr>
+                            <td>dynamodb_query</td>
+                            <td>table, database, query, find</td>
+                            <td>_handle_dynamodb_intent</td>
+                        </tr>
+                        <tr>
+                            <td>scc_query</td>
+                            <td>firewall, device, SCC</td>
+                            <td>_handle_scc_intent</td>
+                        </tr>
+                        <tr>
+                            <td>sal_troubleshoot</td>
+                            <td>SAL, events, troubleshoot</td>
+                            <td>_handle_sal_troubleshoot_intent</td>
+                        </tr>
+                        <tr>
+                            <td>rest_api</td>
+                            <td>API, endpoint, HTTP</td>
+                            <td>_handle_rest_api_intent</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="card">
+                    <h3>Confidence Scoring</h3>
+                    <p><strong>LLM provides confidence (0.0-1.0):</strong></p>
+                    <ul>
+                        <li><strong>0.9+:</strong> High confidence - clear intent match</li>
+                        <li><strong>0.7-0.9:</strong> Medium confidence - likely match</li>
+                        <li><strong>0.5-0.7:</strong> Low confidence - ambiguous query</li>
+                        <li><strong>&lt;0.5:</strong> Very low - may fallback to general chat</li>
+                    </ul>
+                    
+                    <div class="code-block">
+# Example confidence analysis
+Query: "Read sales report.csv"
+→ file_read (confidence: 0.95)
+
+Query: "Find Paradise device events"  
+→ sal_troubleshoot (confidence: 0.85)
+
+Query: "What's the weather?"
+→ general_chat (confidence: 0.9)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 5: LangChain Orchestration -->
+        <div class="slide" id="slide5">
+            <h2>🔗 LangChain Orchestration Pattern</h2>
+            
+            <div class="highlight-box">
+                <h3><span class="emoji">⚡</span>How LangChain Powers the System</h3>
+                <p>LangChain provides the AI orchestration layer, but our MCP server implements the business logic and tool coordination</p>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <h3>AzureChatOpenAI Integration</h3>
+                    <div class="code-block">
+# settings.py - Token Management
+def get_api_key() -> str:
+    # Cisco OAuth2 flow
+    response = requests.post(token_endpoint, ...)
+    return response.json()['access_token']
+
+# mcp_server.py - LLM Client
+self.llm_client = AzureChatOpenAI(
+    azure_endpoint=llm_endpoint,
+    api_key=get_api_key(),  # Fresh token
+    model_name=llm_model,
+    temperature=0.3
+)
+                    </div>
+                    <p><strong>Key Features:</strong></p>
+                    <ul>
+                        <li>Automatic token refresh per request</li>
+                        <li>SSL certificate handling</li>
+                        <li>Structured message formatting</li>
+                        <li>Error handling & retries</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3>Message Chain Pattern</h3>
+                    <div class="code-block">
+# Intent Analysis Chain
+messages = [
+    SystemMessage(content=system_prompt),
+    HumanMessage(content=user_input)
+]
+response = llm.invoke(messages)
+
+# Parameter Extraction Chain  
+extraction_messages = [
+    SystemMessage(content=parameter_prompt),
+    HumanMessage(content=user_input)
+]
+params = llm.invoke(extraction_messages)
+
+# Response Formatting Chain
+format_messages = [
+    SystemMessage(content=format_prompt),
+    HumanMessage(content=tool_result)
+]
+final_response = llm.invoke(format_messages)
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 20px;">
+                <h3>Multi-LLM Call Strategy</h3>
+                <div class="architecture-layer">
+                    <strong>1. Intent Classification LLM Call</strong>
+                    <p>Temperature: 0.1 (deterministic), Max Tokens: 200, Purpose: Routing decision</p>
+                </div>
+                <div class="architecture-layer">
+                    <strong>2. Parameter Extraction LLM Call</strong>
+                    <p>Temperature: 0.1 (precise), Max Tokens: 300, Purpose: Extract tool parameters</p>
+                </div>
+                <div class="architecture-layer">
+                    <strong>3. Response Formatting LLM Call</strong>
+                    <p>Temperature: 0.3 (creative), Max Tokens: 1000-1200, Purpose: Natural language response</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 6: SQLite Conversation Memory Implementation -->
+        <div class="slide" id="slide6">
+            <h2>🗄️ SQLite Conversation Memory Implementation</h2>
+            
+            <div class="highlight-box">
+                <h3><span class="emoji">🗄️</span>NEW: SQLite Persistent Context Management</h3>
+                <p>Advanced conversation memory system using SQLite database with LangChain memory components for persistent session management</p>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <h3>SQLite Memory Architecture</h3>
+                    <div class="code-block">
+# MCPServer.__init__ - SQLite Memory Setup
+self.chat_config = ChatConfig().load_config()
+self.sqlite_history = SQLiteChatMessageHistory(
+    session_id=self.default_session_id,
+    db_path="persistent_chat_history.db",
+    max_messages=100  # Configurable limit
+)
+self.conversation_memory = ConversationBufferMemory(
+    memory_key="chat_history",
+    return_messages=True,
+    chat_memory=self.sqlite_history  # SQLite backend!
+)
+                    </div>
+                    <p><strong>Key Features:</strong></p>
+                    <ul>
+                        <li>Persistent SQLite storage</li>
+                        <li>Configurable message limits</li>
+                        <li>Session-based database tables</li>
+                        <li>LangChain integration</li>
+                        <li>Survives app restarts</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3>SQLite Configuration & Features</h3>
+                    <div class="code-block">
+# chat_config.json - Configuration File
+{
+  "max_messages": 100,
+  "db_path": "persistent_chat_history.db",
+  "default_session": "main_conversation",
+  "backup_enabled": true,
+  "session_timeout_hours": 24
+}
+
+# Database Schema (Auto-created)
+CREATE TABLE chat_messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id TEXT NOT NULL,
+    message_type TEXT NOT NULL,
+    content TEXT NOT NULL,
+    timestamp TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+)
+                    </div>
+                    <p><strong>SQLite Benefits:</strong></p>
+                    <ul>
+                        <li>Built into macOS (no installation needed)</li>
+                        <li>ACID compliance for data integrity</li>
+                        <li>Configurable message limits</li>
+                        <li>Session-based organization</li>
+                        <li>Cross-restart persistence</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 20px;">
+                <h3>SQLite Memory Management Methods</h3>
+                <div class="grid-3">
+                    <div class="method-signature">
+def _get_session_history(session_id: str) -> SQLiteChatMessageHistory
+                    </div>
+                    <div class="method-signature">
+def list_conversation_sessions() -> List[str]
+                    </div>
+                    <div class="method-signature">
+def switch_session(session_id: str) -> str
+                    </div>
+                </div>
+                <div class="code-block">
+# Enhanced SQLite conversation lifecycle management
+def add_to_conversation(user_msg: str, ai_response: str, session_id: str)
+    # Saves to SQLite with automatic message limiting
+
+async def get_conversation_summary(session_id: str)  
+    # Returns database stats + conversation history
+
+def clear_conversation(session_id: str)  
+    # Clears SQLite database for session
+
+def delete_session(session_id: str)
+    # Permanently deletes session from database
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 7: Current Limitations -->
+        <div class="slide" id="slide7">
+            <h2>⚠️ Current Limitations</h2>
+            
+            <div class="grid-2">
+                <div>
+                    <h3>Technical Limitations</h3>
+                    <div class="limitation-item">
+                        <h4>🔄 Synchronous Tool Execution</h4>
+                        <p>Tools execute sequentially, not in parallel. For complex multi-tool workflows, this can impact performance.</p>
+                        <p><strong>Impact:</strong> SAL troubleshooting with many devices takes longer than necessary.</p>
+                    </div>
+                    
+                    <div class="enhancement-item">
+                        <h4>💾 ✅ SQLite State Persistence - RESOLVED</h4>
+                        <p>NEW: SQLite conversation memory system maintains persistent context across app restarts with advanced session management.</p>
+                        <p><strong>Enhancement:</strong> Can now build on previous queries and maintain troubleshooting sessions even after application restarts. Configurable message limits and multiple sessions supported.</p>
+                    </div>
+                    
+                    <div class="limitation-item">
+                        <h4>🎯 Limited Intent Complexity</h4>
+                        <p>Single-action routing - cannot handle composite queries requiring multiple tools simultaneously.</p>
+                        <p><strong>Impact:</strong> "Compare SCC devices with DynamoDB records" requires manual breakdown.</p>
+                    </div>
+                </div>
+
+                <div>
+                    <h3>Operational Limitations</h3>
+                    <div class="limitation-item">
+                        <h4>🔐 No Authentication Layer</h4>
+                        <p>CLI-based system with no user authentication or authorization controls.</p>
+                        <p><strong>Impact:</strong> Cannot control access to sensitive tools or data sources.</p>
+                    </div>
+                    
+                    <div class="limitation-item">
+                        <h4>📊 Limited Analytics</h4>
+                        <p>No usage metrics, performance monitoring, or audit trails.</p>
+                        <p><strong>Impact:</strong> Cannot track system utilization or optimize performance.</p>
+                    </div>
+                    
+                    <div class="limitation-item">
+                        <h4>🔄 No Streaming Responses</h4>
+                        <p>Complete processing before response - no real-time progress updates.</p>
+                        <p><strong>Impact:</strong> Long-running queries appear unresponsive to users.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 20px;">
+                <h3>Scale & Performance Limitations</h3>
+                <ul>
+                    <li><strong>Single Process:</strong> No horizontal scaling, limited concurrent request handling</li>
+                    <li><strong>Memory Usage:</strong> Large CSV files loaded entirely into memory</li>
+                    <li><strong>API Rate Limits:</strong> No built-in throttling for external API calls</li>
+                    <li><strong>Error Recovery:</strong> Limited retry mechanisms and circuit breaker patterns</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 8: Future Enhancements -->
+        <div class="slide" id="slide8">
+            <h2>🚀 Future Enhancements & Suggestions</h2>
+            
+            <div class="grid-2">
+                <div>
+                    <h3>Troubleshooting Enhancements</h3>
+                    <div class="enhancement-item">
+                        <h4>🤖 Intelligent Diagnostics</h4>
+                        <p><strong>Auto-Remediation Workflows:</strong> When SAL events are stale, automatically trigger device restart commands or configuration checks.</p>
+                        <p><strong>Implementation:</strong> Add remediation tools with approval workflows</p>
+                    </div>
+                    
+                    <div class="enhancement-item">
+                        <h4>📈 Predictive Analytics</h4>
+                        <p><strong>Event Pattern Analysis:</strong> Use historical data to predict device failures or maintenance windows.</p>
+                        <p><strong>Implementation:</strong> ML models for time-series analysis of event patterns</p>
+                    </div>
+                    
+                    <div class="enhancement-item">
+                        <h4>🔔 Proactive Monitoring</h4>
+                        <p><strong>Automated Alerting:</strong> Schedule regular health checks and alert on anomalies.</p>
+                        <p><strong>Implementation:</strong> Lambda functions with CloudWatch integration</p>
+                    </div>
+                </div>
+
+                <div>
+                    <h3>System Architecture Enhancements</h3>
+                    <div class="enhancement-item">
+                        <h4>🌐 Multi-Modal Interface</h4>
+                        <p><strong>Web Dashboard:</strong> React frontend with real-time troubleshooting workflows.</p>
+                        <p><strong>API Gateway:</strong> REST/GraphQL APIs for programmatic access.</p>
+                    </div>
+                    
+                    <div class="enhancement-item">
+                        <h4>🧠 Advanced AI Capabilities</h4>
+                        <p><strong>LangGraph Integration:</strong> Complex workflow orchestration with decision nodes.</p>
+                        <p><strong>RAG (Retrieval Augmented Generation):</strong> Knowledge base integration for troubleshooting guides.</p>
+                    </div>
+                    
+                    <div class="enhancement-item">
+                        <h4>📊 Enterprise Features</h4>
+                        <p><strong>RBAC (Role-Based Access Control):</strong> Tool-level permissions and audit logging.</p>
+                        <p><strong>Multi-Tenancy:</strong> Isolated environments for different teams/organizations.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 20px;">
+                <h3>Specific Troubleshooting Tool Ideas</h3>
+                <div class="grid-3">
+                    <div class="card">
+                        <h4>🔧 Network Diagnostics Tool</h4>
+                        <p>Ping, traceroute, DNS resolution checks integrated with device discovery</p>
+                    </div>
+                    <div class="card">
+                        <h4>📋 Configuration Audit Tool</h4>
+                        <p>Compare device configurations against baseline policies and compliance rules</p>
+                    </div>
+                    <div class="card">
+                        <h4>🔄 Change Management Tool</h4>
+                        <p>Track configuration changes and correlate with event streaming issues</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 9: AWS Productization Strategy -->
+        <div class="slide" id="slide9">
+            <h2>☁️ AWS Productization Strategy</h2>
+            
+            <div class="architecture-layer">
+                <h3>🏗️ Recommended AWS Architecture</h3>
+                <div class="flow-diagram">
+                    <div class="flow-step">
+                        <strong>Frontend Layer</strong><br>
+                        <div class="aws-service">CloudFront</div>
+                        <div class="aws-service">S3 (React SPA)</div>
+                        <div class="aws-service">Cognito (Auth)</div>
+                    </div>
+                    <div class="flow-step">
+                        <strong>API Gateway Layer</strong><br>
+                        <div class="aws-service">API Gateway</div>
+                        <div class="aws-service">Lambda Authorizer</div>
+                        <div class="aws-service">WAF</div>
+                    </div>
+                    <div class="flow-step">
+                        <strong>Compute Layer</strong><br>
+                        <div class="aws-service">ECS Fargate</div>
+                        <div class="aws-service">Lambda Functions</div>
+                        <div class="aws-service">Step Functions</div>
+                    </div>
+                    <div class="flow-step">
+                        <strong>Data Layer</strong><br>
+                        <div class="aws-service">DynamoDB</div>
+                        <div class="aws-service">RDS</div>
+                        <div class="aws-service">ElastiCache</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <h3>Core Components Deployment</h3>
+                    <table class="table-style">
+                        <tr>
+                            <th>Component</th>
+                            <th>AWS Service</th>
+                            <th>Purpose</th>
+                        </tr>
+                        <tr>
+                            <td>MCP Server</td>
+                            <td>ECS Fargate</td>
+                            <td>Main orchestrator with auto-scaling</td>
+                        </tr>
+                        <tr>
+                            <td>Tool Functions</td>
+                            <td>Lambda</td>
+                            <td>Individual tools as serverless functions</td>
+                        </tr>
+                        <tr>
+                            <td>Complex Workflows</td>
+                            <td>Step Functions</td>
+                            <td>SAL troubleshooting multi-step orchestration</td>
+                        </tr>
+                        <tr>
+                            <td>File Processing</td>
+                            <td>S3 + Lambda</td>
+                            <td>Triggered file analysis workflows</td>
+                        </tr>
+                        <tr>
+                            <td>Caching</td>
+                            <td>ElastiCache</td>
+                            <td>API responses and session management</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="card">
+                    <h3>Scaling Strategy</h3>
+                    <h4>Horizontal Scaling</h4>
+                    <ul>
+                        <li><strong>ECS Auto Scaling:</strong> Scale MCP server instances based on CPU/memory</li>
+                        <li><strong>Lambda Concurrency:</strong> Handle burst traffic with serverless functions</li>
+                        <li><strong>API Gateway Throttling:</strong> Protect backend services from overload</li>
+                    </ul>
+                    
+                    <h4>Performance Optimization</h4>
+                    <ul>
+                        <li><strong>CloudFront:</strong> Global CDN for static assets and API caching</li>
+                        <li><strong>ElastiCache:</strong> Redis for session management and API response caching</li>
+                        <li><strong>RDS Read Replicas:</strong> Scale database read operations</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 10: Scaling Architecture Details -->
+        <div class="slide" id="slide10">
+            <h2>⚡ Scaling & Production Considerations</h2>
+            
+            <div class="grid-2">
+                <div class="card">
+                    <h3>Traffic Patterns & Auto-Scaling</h3>
+                    <div class="code-block">
+# ECS Service Auto Scaling
+Resource: AWS::ECS::Service
+Properties:
+  ServiceName: llm-orchestrator
+  TaskDefinition: !Ref TaskDefinition
+  DesiredCount: 2
+  DeploymentConfiguration:
+    MinimumHealthyPercent: 50
+    MaximumPercent: 200
+                    </div>
+                    
+                    <h4>Scaling Triggers</h4>
+                    <ul>
+                        <li><strong>CPU > 70%:</strong> Scale out ECS tasks</li>
+                        <li><strong>Memory > 80%:</strong> Scale up task definitions</li>
+                        <li><strong>API Gateway 5xx errors:</strong> Health check failures</li>
+                        <li><strong>Lambda Duration > 5min:</strong> Consider ECS for long-running tasks</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3>Cost Optimization Strategy</h3>
+                    <table class="table-style">
+                        <tr>
+                            <th>Workload</th>
+                            <th>Service Choice</th>
+                            <th>Cost Factor</th>
+                        </tr>
+                        <tr>
+                            <td>Quick queries (&lt;30s)</td>
+                            <td>Lambda</td>
+                            <td>Pay per invocation</td>
+                        </tr>
+                        <tr>
+                            <td>Long analysis (1-10min)</td>
+                            <td>ECS Fargate</td>
+                            <td>Per-second billing</td>
+                        </tr>
+                        <tr>
+                            <td>Batch processing</td>
+                            <td>Spot Instances</td>
+                            <td>70% cost savings</td>
+                        </tr>
+                        <tr>
+                            <td>File storage</td>
+                            <td>S3 IA/Glacier</td>
+                            <td>Lifecycle policies</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 20px;">
+                <h3>Monitoring & Observability Stack</h3>
+                <div class="grid-3">
+                    <div class="architecture-layer">
+                        <h4>Application Metrics</h4>
+                        <ul>
+                            <li>CloudWatch Custom Metrics</li>
+                            <li>Intent classification accuracy</li>
+                            <li>Tool execution times</li>
+                            <li>User query patterns</li>
+                        </ul>
+                    </div>
+                    <div class="architecture-layer">
+                        <h4>Infrastructure Monitoring</h4>
+                        <ul>
+                            <li>ECS Container Insights</li>
+                            <li>Lambda function metrics</li>
+                            <li>DynamoDB performance</li>
+                            <li>API Gateway analytics</li>
+                        </ul>
+                    </div>
+                    <div class="architecture-layer">
+                        <h4>Distributed Tracing</h4>
+                        <ul>
+                            <li>AWS X-Ray integration</li>
+                            <li>End-to-end request tracing</li>
+                            <li>Multi-service performance</li>
+                            <li>Error rate analysis</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="highlight-box">
+                <h3>💰 Estimated Monthly Cost (1000 users, 10k queries)</h3>
+                <div class="grid-3">
+                    <div style="text-align: center;">
+                        <h2 style="color: #27ae60;">~$800</h2>
+                        <p>Development Environment</p>
+                    </div>
+                    <div style="text-align: center;">
+                        <h2 style="color: #f39c12;">~$2,500</h2>
+                        <p>Staging Environment</p>
+                    </div>
+                    <div style="text-align: center;">
+                        <h2 style="color: #e74c3c;">~$8,000</h2>
+                        <p>Production Environment</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 11: Implementation Roadmap -->
+        <div class="slide" id="slide11">
+            <h2>🗺️ Implementation Roadmap</h2>
+            
+            <div class="architecture-layer">
+                <h3>Phase 1: Foundation (Months 1-2)</h3>
+                <div class="grid-2">
+                    <div class="card">
+                        <h4>Infrastructure Setup</h4>
+                        <ul>
+                            <li>✅ Containerize current application (Docker)</li>
+                            <li>✅ Set up ECS cluster with Fargate</li>
+                            <li>✅ Configure API Gateway with basic routing</li>
+                            <li>✅ Implement CloudWatch logging</li>
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <h4>Security & Compliance</h4>
+                        <ul>
+                            <li>🔄 Implement Cognito user authentication</li>
+                            <li>🔄 Add IAM roles and policies</li>
+                            <li>🔄 Set up VPC with private subnets</li>
+                            <li>🔄 Configure WAF rules</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="architecture-layer">
+                <h3>Phase 2: Enhancement (Months 3-4)</h3>
+                <div class="grid-2">
+                    <div class="card">
+                        <h4>Performance & Scaling</h4>
+                        <ul>
+                            <li>🔄 Convert tools to Lambda functions</li>
+                            <li>🔄 Implement ElastiCache for caching</li>
+                            <li>🔄 Add auto-scaling policies</li>
+                            <li>🔄 Set up CloudFront distribution</li>
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <h4>Advanced Features</h4>
+                        <ul>
+                            <li>🔄 Build React frontend dashboard</li>
+                            <li>🔄 Implement WebSocket for real-time updates</li>
+                            <li>🔄 Add Step Functions for complex workflows</li>
+                            <li>🔄 Integrate with existing monitoring tools</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="architecture-layer">
+                <h3>Phase 3: Production (Months 5-6)</h3>
+                <div class="card">
+                    <h4>Enterprise Readiness</h4>
+                    <ul>
+                        <li>🔄 Multi-region deployment</li>
+                        <li>🔄 Disaster recovery procedures</li>
+                        <li>🔄 Comprehensive monitoring dashboards</li>
+                        <li>🔄 Load testing and capacity planning</li>
+                        <li>🔄 Integration with enterprise SSO</li>
+                        <li>🔄 Compliance documentation (SOC2, ISO27001)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="highlight-box">
+                <h3>🎯 Success Metrics</h3>
+                <div class="grid-3">
+                    <div>
+                        <h4>Performance</h4>
+                        <ul>
+                            <li>99.9% uptime SLA</li>
+                            <li>&lt;2s average response time</li>
+                            <li>Support 10k concurrent users</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4>Business Impact</h4>
+                        <ul>
+                            <li>75% reduction in troubleshooting time</li>
+                            <li>90% user adoption rate</li>
+                            <li>$500k annual operational savings</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4>Technical Excellence</h4>
+                        <ul>
+                            <li>95% intent classification accuracy</li>
+                            <li>&lt;5% error rate across all tools</li>
+                            <li>Zero-downtime deployments</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 12: Thank You -->
+        <div class="slide" id="slide12">
+            <div class="hero-section">
+                <h1>🙏 Thank You!</h1>
+                <p class="subtitle">Questions & Technical Discussion</p>
+                
+                <div class="flow-diagram" style="margin-top: 40px;">
+                    <h3>Key Takeaways</h3>
+                    <p style="margin-top: 20px;">
+                        ✅ <strong>Solid Foundation:</strong> Working system with intelligent routing<br>
+                        ✅ <strong>Scalable Architecture:</strong> Clear path to AWS productization<br>
+                        ✅ <strong>Extensible Design:</strong> Easy to add new tools and capabilities<br>
+                        ✅ <strong>Production Ready:</strong> With proper investment in infrastructure
+                    </p>
+                </div>
+
+                <div style="margin-top: 40px; font-size: 1.1em;">
+                    <p><span class="highlight-box" style="display: inline-block; padding: 10px 20px;">
+                        Next Steps: Prioritize enhancements based on business value and technical feasibility
+                    </span></p>
+                </div>
+
+                <div style="margin-top: 30px; color: #7f8c8d;">
+                    <p><strong>Repository:</strong> /Users/saurabya/cursor_ai</p>
+                    <p><strong>Key Technical Files:</strong> mcp_server.py, tools/, settings.py</p>
+                    <p><strong>Documentation:</strong> README.md, presentation files</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="navigation">
+        <button class="nav-btn" onclick="previousSlide()">← Previous</button>
+        <button class="nav-btn" onclick="nextSlide()">Next →</button>
+    </div>
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = 12;
+
+        function showSlide(n) {
+            const slides = document.querySelectorAll('.slide');
+            slides.forEach(slide => slide.style.display = 'none');
+            
+            if (n > totalSlides) currentSlide = 1;
+            if (n < 1) currentSlide = totalSlides;
+            
+            document.getElementById(`slide${currentSlide}`).style.display = 'flex';
+            
+            // Update URL hash
+            window.location.hash = `slide${currentSlide}`;
+        }
+
+        function nextSlide() {
+            currentSlide++;
+            showSlide(currentSlide);
+        }
+
+        function previousSlide() {
+            currentSlide--;
+            showSlide(currentSlide);
+        }
+
+        // Initialize
+        showSlide(currentSlide);
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'ArrowRight' || event.key === ' ') {
+                nextSlide();
+            } else if (event.key === 'ArrowLeft') {
+                previousSlide();
+            }
+        });
+
+        // Handle initial hash
+        window.addEventListener('load', function() {
+            const hash = window.location.hash;
+            if (hash) {
+                const slideNum = parseInt(hash.replace('#slide', ''));
+                if (slideNum >= 1 && slideNum <= totalSlides) {
+                    currentSlide = slideNum;
+                    showSlide(currentSlide);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

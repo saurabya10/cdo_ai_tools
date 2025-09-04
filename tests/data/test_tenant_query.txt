@@ -1,0 +1,1 @@
+read all records of tenant_reports/sample_tenant_processing.csv file and 'Time Interval' field indicates the time difference between current file and previous processed file. Now do you think are we processing files very frequently and frequency between files are very quick (under 2 seconds) in most cases

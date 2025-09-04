@@ -1,0 +1,7 @@
+{
+  "max_messages": 100,
+  "db_path": "persistent_chat_history.db",
+  "default_session": "main_conversation",
+  "backup_enabled": true,
+  "session_timeout_hours": 24
+}

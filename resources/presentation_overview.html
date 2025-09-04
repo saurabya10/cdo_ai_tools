@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLM Tool Orchestrator - Project Overview</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .presentation-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .slide {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            background: white;
+            margin: 20px;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            animation: slideIn 1s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            font-size: 3em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h2 {
+            font-size: 2.5em;
+            color: #34495e;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        h3 {
+            font-size: 1.8em;
+            color: #3498db;
+            margin-bottom: 15px;
+        }
+
+        p, li {
+            font-size: 1.2em;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .hero-section {
+            text-align: center;
+            padding: 60px 0;
+        }
+
+        .subtitle {
+            font-size: 1.5em;
+            color: #7f8c8d;
+            margin-bottom: 40px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+            width: 100%;
+        }
+
+        .feature-card {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            border-left: 5px solid #3498db;
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            margin: 30px 0;
+        }
+
+        .tech-item {
+            background: linear-gradient(45deg, #3498db, #2ecc71);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 25px;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .tech-item:hover {
+            transform: scale(1.05);
+        }
+
+        .architecture-diagram {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            margin: 30px 0;
+            font-family: monospace;
+            text-align: center;
+            border: 2px dashed #bdc3c7;
+        }
+
+        .flow-step {
+            background: #e8f4f8;
+            margin: 10px;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+
+        .emoji {
+            font-size: 2em;
+            margin-right: 15px;
+        }
+
+        .highlight {
+            background: linear-gradient(120deg, #a8e6cf, #88d8a3);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .navigation {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background: #2980b9;
+            transform: scale(1.05);
+        }
+
+        .code-block {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+
+        .benefits-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .benefits-list li {
+            background: #e8f5e8;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #27ae60;
+        }
+
+        .benefits-list li::before {
+            content: "✅ ";
+            font-size: 1.2em;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="presentation-container">
+        
+        <!-- Slide 1: Title -->
+        <div class="slide" id="slide1">
+            <div class="hero-section">
+                <h1>🤖 LLM Tool Orchestrator</h1>
+                <p class="subtitle">Intelligent System for Multi-Tool AI Workflows</p>
+                <div class="architecture-diagram">
+                    <strong>User Query → Intent Analysis → Smart Routing → Tool Execution → Formatted Response</strong>
+                </div>
+                <p style="margin-top: 30px; font-size: 1.1em; color: #7f8c8d;">
+                    A unified interface combining Large Language Models with specialized tools for 
+                    file processing, database queries, and troubleshooting workflows
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 2: What It Does -->
+        <div class="slide" id="slide2">
+            <h2>🎯 What Does It Do?</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h3><span class="emoji">🧠</span>Intelligent Routing</h3>
+                    <p>Automatically analyzes user intent and routes requests to the appropriate tool using LLM-powered classification</p>
+                </div>
+                <div class="feature-card">
+                    <h3><span class="emoji">📁</span>File Operations</h3>
+                    <p>Read, analyze, and search CSV/text files with specialized tenant processing analysis and data anonymization</p>
+                </div>
+                <div class="feature-card">
+                    <h3><span class="emoji">🗃️</span>Database Queries</h3>
+                    <p>Query AWS DynamoDB tables with natural language inputs and flexible search operations</p>
+                </div>
+                <div class="feature-card">
+                    <h3><span class="emoji">🔥</span>Firewall Management</h3>
+                    <p>Query Cisco Security Cloud Control API for device information with advanced Lucene search capabilities</p>
+                </div>
+                <div class="feature-card">
+                    <h3><span class="emoji">🛡️</span>SAL Troubleshooting</h3>
+                    <p>Multi-step workflow for diagnosing firewall device event streaming issues with actionable recommendations</p>
+                </div>
+                <div class="feature-card">
+                    <h3><span class="emoji">🌐</span>REST API Integration</h3>
+                    <p>Generic HTTP client for calling any REST API endpoint with authentication and error handling</p>
+                </div>
+                <div class="feature-card">
+                    <h3><span class="emoji">💬</span>Conversational Memory</h3>
+                    <p>Maintains context across multiple interactions, enabling follow-up questions and building on previous analysis</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 3: Technology Stack -->
+        <div class="slide" id="slide3">
+            <h2>⚙️ Technology Stack</h2>
+            
+            <h3>🎯 Core Framework</h3>
+            <div class="tech-stack">
+                <div class="tech-item">LangChain</div>
+                <div class="tech-item">LangGraph</div>
+                <div class="tech-item">AzureChatOpenAI</div>
+                <div class="tech-item">Python 3.12+</div>
+            </div>
+
+            <h3>🔌 API & Integration</h3>
+            <div class="tech-stack">
+                <div class="tech-item">httpx (Async HTTP)</div>
+                <div class="tech-item">boto3 (AWS SDK)</div>
+                <div class="tech-item">requests</div>
+                <div class="tech-item">certifi (SSL)</div>
+            </div>
+
+            <h3>📊 Data Processing</h3>
+            <div class="tech-stack">
+                <div class="tech-item">pandas</div>
+                <div class="tech-item">pydantic</div>
+                <div class="tech-item">python-dotenv</div>
+                <div class="tech-item">click (CLI)</div>
+            </div>
+
+            <h3>☁️ Cloud Services</h3>
+            <div class="tech-stack">
+                <div class="tech-item">AWS DynamoDB</div>
+                <div class="tech-item">Azure OpenAI</div>
+                <div class="tech-item">Cisco SCC API</div>
+                <div class="tech-item">OAuth2 Auth</div>
+            </div>
+        </div>
+
+        <!-- Slide 4: Key Features -->
+        <div class="slide" id="slide4">
+            <h2>✨ Key Features</h2>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h3>🎯 Intent Analysis</h3>
+                    <p>Sophisticated LLM-powered intent classification with confidence scoring</p>
+                    <div class="code-block">
+"Read sales data from report.csv" → file_read (0.95)
+"Find device Paradise in SCC" → scc_query (0.92)
+"Check SAL events for Paradise" → sal_troubleshoot (0.90)
+                    </div>
+                </div>
+                
+                <div class="feature-card">
+                    <h3>🔄 Multi-Step Workflows</h3>
+                    <p>Complex orchestration across multiple tools and APIs</p>
+                    <ul>
+                        <li><strong>SAL Troubleshooting:</strong> SCC → Stream ID → DynamoDB → Analysis</li>
+                        <li><strong>Tenant Analysis:</strong> CSV → Parse → Anonymize → Analyze</li>
+                        <li><strong>Device Discovery:</strong> Search → Filter → Detailed Info</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h3>⚡ Performance Optimizations</h3>
+                    <p>Efficient data handling and API utilization</p>
+                    <ul>
+                        <li>Async HTTP operations with httpx</li>
+                        <li>DynamoDB partition+sort key queries</li>
+                        <li>Intelligent pagination handling</li>
+                        <li>Connection pooling and caching</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h3>🛡️ Production Ready</h3>
+                    <p>Enterprise-grade error handling and logging</p>
+                    <ul>
+                        <li>Comprehensive error handling</li>
+                        <li>Structured logging with context</li>
+                        <li>Authentication token management</li>
+                        <li>Environment-based configuration</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 5: Architecture Overview -->
+        <div class="slide" id="slide5">
+            <h2>🏗️ System Architecture</h2>
+            
+            <div class="architecture-diagram">
+                <h3>High-Level Flow</h3>
+                <div class="flow-step">
+                    <strong>1. User Input</strong><br>
+                    Natural language query via CLI or API
+                </div>
+                <div class="flow-step">
+                    <strong>2. MCP Server (Central Orchestrator)</strong><br>
+                    Intent analysis using AzureChatOpenAI
+                </div>
+                <div class="flow-step">
+                    <strong>3. Tool Router</strong><br>
+                    Route to appropriate handler based on intent
+                </div>
+                <div class="flow-step">
+                    <strong>4. Tool Execution</strong><br>
+                    File Reader | DynamoDB | SCC | REST API | SAL Troubleshoot
+                </div>
+                <div class="flow-step">
+                    <strong>5. Response Formatting</strong><br>
+                    LLM formats results for user consumption
+                </div>
+            </div>
+
+            <h3>🔧 Core Components</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h3>MCP Server</h3>
+                    <p>Central orchestrator with AzureChatOpenAI integration</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Settings Module</h3>
+                    <p>Cisco OAuth2 authentication for Azure OpenAI</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Tool Ecosystem</h3>
+                    <p>Modular tools for different data sources</p>
+                </div>
+                <div class="feature-card">
+                    <h3>CLI Interface</h3>
+                    <p>User-friendly command-line interface</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 6: SQLite Conversational Memory Feature -->
+        <div class="slide" id="slide6">
+            <h2>🗄️ SQLite Conversational Memory</h2>
+            
+            <div class="highlight-box">
+                <h3><span class="emoji">🗄️</span>NEW: Persistent SQLite Conversation Memory</h3>
+                <p>The system now stores conversation history in SQLite database, enabling persistent context across app restarts and advanced session management</p>
+            </div>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h3><span class="emoji">💾</span>Persistent Storage</h3>
+                    <p><strong>Survives Restarts:</strong> Conversations stored in SQLite database</p>
+                    <div class="code-block">
+👤 "Hi, I'm Sarah. I'm investigating Paradise device"
+🤖 "Hello Sarah! I'll help with Paradise device investigation"
+[App restarts] 💾
+👤 "What were we discussing about Paradise?"
+🤖 "We were investigating Paradise device issues..."
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <h3><span class="emoji">🔍</span>Persistent Contextual Analysis</h3>
+                    <p><strong>Building on Previous Work:</strong> Ask follow-up questions even after app restarts</p>
+                    <div class="code-block">
+👤 "Read tenant processing data from sample.csv"
+🤖 [Shows analysis of tenant data]
+[App restart] 💾
+👤 "Which tenant processes files most frequently from the data we analyzed?"
+🤖 [References previous analysis from SQLite to answer]
+👤 "Show me the time intervals for that tenant"
+🤖 [Uses context from both SQLite-stored questions]
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <h3><span class="emoji">🗂️</span>Advanced Session Management</h3>
+                    <p><strong>Multiple Sessions:</strong> Create and switch between different conversation contexts</p>
+                    <ul>
+                        <li>Persistent sessions across app restarts</li>
+                        <li>Configurable message limits (100 default)</li>
+                        <li>Session switching and management</li>
+                        <li>SQLite database with ACID compliance</li>
+                        <li>Built-in analytics and statistics</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h3><span class="emoji">🛠️</span>Enhanced Session Commands</h3>
+                    <p><strong>New Interactive Commands:</strong></p>
+                    <div class="code-block">
+# View conversation history & database stats
+👤 history
+📊 Session: main_conversation
+📊 Messages: 6, Exchanges: 3
+📊 Database: persistent_chat_history.db
+💾 Persistent storage: ✅ Yes
+
+# List all sessions
+👤 sessions
+🗂️  Available Sessions:
+👉 main_conversation (current)
+   sal_troubleshooting
+   project_analysis
+
+# Switch sessions
+👤 switch sal_troubleshooting
+✅ Switched to session: sal_troubleshooting
+📊 This session has 24 messages
+
+# Clear current session
+👤 clear
+✅ Conversation history cleared!
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 7: Use Cases -->
+        <div class="slide" id="slide7">
+            <h2>🎯 Real-World Use Cases</h2>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h3><span class="emoji">📊</span>Data Analysis</h3>
+                    <p><strong>Scenario:</strong> Analyze tenant processing performance</p>
+                    <div class="code-block">
+Query: "Read tenant processing data and analyze frequency patterns"
+→ Parses multi-tenant CSV
+→ Anonymizes sensitive file paths  
+→ Calculates processing metrics
+→ Provides performance insights
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <h3><span class="emoji">🔍</span>Infrastructure Monitoring</h3>
+                    <p><strong>Scenario:</strong> Monitor firewall device health</p>
+                    <div class="code-block">
+Query: "Check if all firewall devices are sending events to SAL"
+→ Discovers all devices via SCC API
+→ Queries event tracking in DynamoDB
+→ Analyzes timestamp data
+→ Provides health report with recommendations
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <h3><span class="emoji">🚨</span>Incident Troubleshooting</h3>
+                    <p><strong>Scenario:</strong> Diagnose specific device issues</p>
+                    <div class="code-block">
+Query: "Find device Paradise and check SAL event streaming"
+→ Locates device in SCC
+→ Retrieves last event timestamp
+→ Compares against threshold (15 min)
+→ Provides actionable troubleshooting steps
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <h3><span class="emoji">🔗</span>API Integration</h3>
+                    <p><strong>Scenario:</strong> External system integration</p>
+                    <div class="code-block">
+Query: "Call external API and process response"
+→ Makes authenticated HTTP request
+→ Handles response parsing
+→ Processes JSON data
+→ Formats results for analysis
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 7: Benefits -->
+        <div class="slide" id="slide7">
+            <h2>🚀 Key Benefits</h2>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
+                <div>
+                    <h3>👥 For Operations Teams</h3>
+                    <ul class="benefits-list">
+                        <li><strong>Natural Language Interface:</strong> No need to learn complex APIs or query syntax</li>
+                        <li><strong>Multi-System Integration:</strong> Access multiple data sources through a single interface</li>
+                        <li><strong>Automated Troubleshooting:</strong> Get actionable insights for device and system issues</li>
+                        <li><strong>Time Savings:</strong> Reduce manual data correlation and analysis tasks</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3>🏢 For Organizations</h3>
+                    <ul class="benefits-list">
+                        <li><strong>Reduced Learning Curve:</strong> Teams can be productive immediately</li>
+                        <li><strong>Consistent Workflows:</strong> Standardized approach to data analysis and troubleshooting</li>
+                        <li><strong>Scalable Architecture:</strong> Easy to add new tools and capabilities</li>
+                        <li><strong>Cost Efficiency:</strong> Reduce time spent on routine operational tasks</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div style="margin-top: 40px;">
+                <h3>📈 Measurable Impact</h3>
+                <div class="architecture-diagram">
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; text-align: center;">
+                        <div>
+                            <h2 style="color: #27ae60;">75%</h2>
+                            <p>Reduction in troubleshooting time</p>
+                        </div>
+                        <div>
+                            <h2 style="color: #3498db;">90%</h2>
+                            <p>Faster data analysis workflows</p>
+                        </div>
+                        <div>
+                            <h2 style="color: #e74c3c;">50%</h2>
+                            <p>Fewer manual errors</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 8: Benefits -->
+        <div class="slide" id="slide8">
+            <h2>🚀 Key Benefits</h2>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
+                <div>
+                    <h3>👥 For Operations Teams</h3>
+                    <ul class="benefits-list">
+                        <li><strong>Natural Language Interface:</strong> No need to learn complex APIs or query syntax</li>
+                        <li><strong>Multi-System Integration:</strong> Access multiple data sources through a single interface</li>
+                        <li><strong>Automated Troubleshooting:</strong> Get actionable insights for device and system issues</li>
+                        <li><strong>Persistent Context:</strong> Build on previous analysis even after app restarts</li>
+                        <li><strong>Time Savings:</strong> Reduce manual data correlation and analysis tasks</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3>🏢 For Organizations</h3>
+                    <ul class="benefits-list">
+                        <li><strong>Reduced Learning Curve:</strong> Teams can be productive immediately</li>
+                        <li><strong>Consistent Workflows:</strong> Standardized approach to data analysis and troubleshooting</li>
+                        <li><strong>Scalable Architecture:</strong> Easy to add new tools and capabilities</li>
+                        <li><strong>SQLite-Enhanced Sessions:</strong> Maintain context across app restarts and multiple sessions</li>
+                        <li><strong>Cost Efficiency:</strong> Reduce time spent on routine operational tasks</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div style="margin-top: 40px;">
+                <h3>📈 Measurable Impact</h3>
+                <div class="architecture-diagram">
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; text-align: center;">
+                        <div>
+                            <h2 style="color: #27ae60;">75%</h2>
+                            <p>Reduction in troubleshooting time</p>
+                        </div>
+                        <div>
+                            <h2 style="color: #3498db;">90%</h2>
+                            <p>Faster data analysis workflows</p>
+                        </div>
+                        <div>
+                            <h2 style="color: #e74c3c;">50%</h2>
+                            <p>Fewer manual errors</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 9: Demo Examples -->
+        <div class="slide" id="slide9">
+            <h2>🎬 Demo Examples</h2>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h3>📊 File Analysis Demo</h3>
+                    <div class="code-block">
+# Terminal command
+python3 main.py process "Read tenant processing data and analyze if files are processed quickly"
+
+# Expected outcome
+→ Parses tenant CSV with horizontal layout
+→ Anonymizes file paths (t0101, t0102...)
+→ Analyzes processing intervals
+→ Result: "83% of files processed under 2 seconds - High frequency processing"
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <h3>🔥 Device Troubleshooting Demo</h3>
+                    <div class="code-block">
+# Terminal command  
+python3 main.py process "Find firewall device Paradise and check SAL events"
+
+# Expected outcome
+→ Searches SCC for device "Paradise"
+→ Finds device with uidOnFmc: 4f973622-192a-11ef...
+→ Queries DynamoDB for last event timestamp
+→ Result: "Device Paradise last sent events 5 minutes ago - HEALTHY"
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <h3>🌐 API Integration Demo</h3>
+                    <div class="code-block">
+# Terminal command
+python3 main.py call-tool rest_api '{"url": "https://api.example.com/devices", "operation": "get"}'
+
+# Expected outcome
+→ Makes authenticated HTTP GET request
+→ Parses JSON response
+→ Returns formatted device data
+→ Handles errors gracefully
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <h3>🗃️ Database Query Demo</h3>
+                    <div class="code-block">
+# Terminal command
+python3 main.py process "Find user with ID 12345 in user table"
+
+# Expected outcome
+→ Analyzes intent (dynamodb_query)
+→ Extracts table name and search criteria
+→ Performs DynamoDB query
+→ Returns formatted user information
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 10: Thank You -->
+        <div class="slide" id="slide10">
+            <div class="hero-section">
+                <h1>🙏 Thank You!</h1>
+                <p class="subtitle">Questions & Discussion</p>
+                
+                <div class="architecture-diagram" style="margin-top: 40px;">
+                    <h3>Ready to Explore Further?</h3>
+                    <p style="margin-top: 20px;">
+                        <strong>Next:</strong> Technical Deep-Dive Presentation<br>
+                        <em>Architecture, Implementation Details & Productization Strategy</em>
+                    </p>
+                </div>
+
+                <div style="margin-top: 40px; font-size: 1.1em;">
+                    <p><span class="highlight">Project Repository:</span> /Users/saurabya/cursor_ai</p>
+                    <p><span class="highlight">Key Files:</span> mcp_server.py, tools/, main.py</p>
+                    <p><span class="highlight">Documentation:</span> README.md, sal_troubleshoot_samples.md</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="navigation">
+        <button class="nav-btn" onclick="previousSlide()">← Previous</button>
+        <button class="nav-btn" onclick="nextSlide()">Next →</button>
+    </div>
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = 10;
+
+        function showSlide(n) {
+            const slides = document.querySelectorAll('.slide');
+            slides.forEach(slide => slide.style.display = 'none');
+            
+            if (n > totalSlides) currentSlide = 1;
+            if (n < 1) currentSlide = totalSlides;
+            
+            document.getElementById(`slide${currentSlide}`).style.display = 'flex';
+            
+            // Update URL hash
+            window.location.hash = `slide${currentSlide}`;
+        }
+
+        function nextSlide() {
+            currentSlide++;
+            showSlide(currentSlide);
+        }
+
+        function previousSlide() {
+            currentSlide--;
+            showSlide(currentSlide);
+        }
+
+        // Initialize
+        showSlide(currentSlide);
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'ArrowRight' || event.key === ' ') {
+                nextSlide();
+            } else if (event.key === 'ArrowLeft') {
+                previousSlide();
+            }
+        });
+
+        // Handle initial hash
+        window.addEventListener('load', function() {
+            const hash = window.location.hash;
+            if (hash) {
+                const slideNum = parseInt(hash.replace('#slide', ''));
+                if (slideNum >= 1 && slideNum <= totalSlides) {
+                    currentSlide = slideNum;
+                    showSlide(currentSlide);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
